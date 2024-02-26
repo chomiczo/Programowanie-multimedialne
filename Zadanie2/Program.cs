@@ -19,7 +19,7 @@ namespace PMLabs
 
     class Program
     {
-        static Torus torus = new Torus();
+        static Teapot teapot = new Teapot();
 
         public static void InitOpenGLProgram(Window window)
         {
@@ -45,10 +45,11 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("V"), 1, false, V.Values1D);
 
             mat4 M = mat4.Identity;
+            M *= mat4.Rotate(glm.Radians(30.0f), new vec3(0.0f, 1.0f, 0.0f)); //o 30 stopni obrócony czajnik
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
 
             // TU RYSUJEMY
-            torus.drawWire();
+            teapot.drawWire(); //narysowany czajnik
 
             Glfw.SwapBuffers(window);
         }
