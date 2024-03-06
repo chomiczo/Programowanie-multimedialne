@@ -1,10 +1,9 @@
-﻿using OpenTK;
-using OpenTK.Graphics.OpenGL4;
-using GLFW;
+﻿using GLFW;
 using GlmSharp;
-
-using Shaders;
 using Models;
+using OpenTK;
+using OpenTK.Graphics.OpenGL4;
+using Shaders;
 
 namespace PMLabs
 {
@@ -19,6 +18,10 @@ namespace PMLabs
 
     class Program
     {
+        //zdefiniowanie trzech obiektów
+        static Sphere sun = new Sphere(0.5f, 12, 12);
+        static Sphere planet = new Sphere(0.2f, 12, 12);
+        static Sphere moon = new Sphere(0.1f, 12, 12);
         public static void InitOpenGLProgram(Window window)
         {
             // Czyszczenie okna na kolor czarny
@@ -28,7 +31,7 @@ namespace PMLabs
             DemoShaders.InitShaders("Shaders\\");
         }
 
-        public static void DrawScene(Window window)
+        public static void DrawScene(Window window, float time) //dodanie float time
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -42,10 +45,24 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("P"), 1, false, P.Values1D);
             GL.UniformMatrix4(DemoShaders.spConstant.U("V"), 1, false, V.Values1D);
 
+            //Sun
             mat4 M = mat4.Identity;
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
+            sun.drawWire();
 
-            // TU RYSUJEMY
+            M *= mat4.Rotate(glm.Radians(60.0f * time), new vec3(0.0f, 1.0f, 0.0f));
+
+            //Planet
+            M *= mat4.Translate(new vec3(1.5f, 0.0f, 0.0f));
+            M *= mat4.Rotate(glm.Radians(100.0f * time), new vec3(0.0f, 1.0f, 0.0f));
+            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
+
+            planet.drawWire();
+
+            //Moon
+            M *= mat4.Translate(new vec3(0.5f, 0.0f, 0.0f));
+            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
+            moon.drawWire();
 
             Glfw.SwapBuffers(window);
         }
@@ -72,7 +89,7 @@ namespace PMLabs
 
             while (!Glfw.WindowShouldClose(window))
             {
-                DrawScene(window);
+                DrawScene(window, (float)Glfw.Time); //dodanie float time
                 Glfw.PollEvents();
             }
 

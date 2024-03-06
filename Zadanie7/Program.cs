@@ -8,7 +8,7 @@ using Models;
 
 namespace PMLabs
 {
-    //Implementacja interfejsu dostosowującego metodę biblioteki Glfw służącą do pozyskiwania adresów funkcji i procedur OpenGL do współpracy z OpenTK.
+    // Implementacja interfejsu dostosowującego metodę biblioteki Glfw służącą do pozyskiwania adresów funkcji i procedur OpenGL do współpracy z OpenTK.
     public class BC : IBindingsContext
     {
         public IntPtr GetProcAddress(string procName)
@@ -19,6 +19,10 @@ namespace PMLabs
 
     class Program
     {
+        static Torus torus1 = new Torus();
+        static Torus torus2 = new Torus();
+        static Cube cube1 = new Cube();
+
         public static void InitOpenGLProgram(Window window)
         {
             // Czyszczenie okna na kolor czarny
@@ -28,7 +32,7 @@ namespace PMLabs
             DemoShaders.InitShaders("Shaders\\");
         }
 
-        public static void DrawScene(Window window)
+        public static void DrawScene(Window window, float time)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -42,10 +46,25 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("P"), 1, false, P.Values1D);
             GL.UniformMatrix4(DemoShaders.spConstant.U("V"), 1, false, V.Values1D);
 
+            // Rysowanie pierwszego torusa
             mat4 M = mat4.Identity;
+            M *= mat4.Translate(new vec3(-1.1f, 0.0f, 0.0f));
+            M *= mat4.Rotate(glm.Radians(100.0f * time), new vec3(0.0f, 0.0f, 1.0f));
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
+            torus1.drawWire();
 
-            // TU RYSUJEMY
+            // Rysowanie kostek na obrzeżach pierwszego torusa
+            DrawTeeth(M);
+
+            // Rysowanie drugiego torusa
+            mat4 N = mat4.Identity;
+            N *= mat4.Translate(new vec3(1.0f, 0.0f, 0.0f));
+            N *= mat4.Rotate(glm.Radians(-100.0f * time), new vec3(0.0f, 0.0f, 1.0f));
+            GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, N.Values1D);
+            torus2.drawWire();
+
+            // Rysowanie kostek na obrzeżach drugiego torusa
+            DrawTeeth(N);
 
             Glfw.SwapBuffers(window);
         }
@@ -64,7 +83,7 @@ namespace PMLabs
             Glfw.MakeContextCurrent(window);
             Glfw.SwapInterval(1);
 
-            GL.LoadBindings(new BC()); //Pozyskaj adresy implementacji poszczególnych procedur OpenGL
+            GL.LoadBindings(new BC()); // Pozyskaj adresy implementacji poszczególnych procedur OpenGL
 
             InitOpenGLProgram(window);
 
@@ -72,16 +91,31 @@ namespace PMLabs
 
             while (!Glfw.WindowShouldClose(window))
             {
-                DrawScene(window);
+                DrawScene(window, (float)Glfw.Time);
                 Glfw.PollEvents();
             }
-
 
             FreeOpenGLProgram(window);
 
             Glfw.Terminate();
         }
 
+        // Metoda rysująca kostki na obrzeżach torusa
+        static void DrawTeeth(mat4 torusMatrix)
+        {
+            for (int i = 1; i <= 12; i++)
+            {
+                float angle = glm.Radians(30.0f * i);
 
+                // Obliczanie macierzy kostki
+                mat4 Mk = torusMatrix * mat4.Rotate(angle, new vec3(0.0f, 0.0f, 1.2f)) * mat4.Translate(new vec3(1.1f, 0.0f, 0.0f)) * mat4.Scale(new vec3(0.1f));
+
+                // Przesyłanie macierzy kostki do shadera
+                GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, Mk.Values1D);
+
+                // Rysowanie kostki
+                cube1.drawWire();
+            }
+        }
     }
 }

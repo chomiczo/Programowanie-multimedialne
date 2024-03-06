@@ -7,7 +7,7 @@ namespace Models
 
 		public static Cube cube=new Cube();
 
-		Cube()
+		public Cube()
 		{
 			vertexCount = CubeInternal.vertexCount;
 			vertices = CubeInternal.vertices;

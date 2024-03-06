@@ -19,6 +19,7 @@ namespace PMLabs
 
     class Program
     {
+        static Teapot teapot = new Teapot();
         public static void InitOpenGLProgram(Window window)
         {
             // Czyszczenie okna na kolor czarny
@@ -28,7 +29,7 @@ namespace PMLabs
             DemoShaders.InitShaders("Shaders\\");
         }
 
-        public static void DrawScene(Window window)
+        public static void DrawScene(Window window, float time) //dodanie float time
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -43,9 +44,11 @@ namespace PMLabs
             GL.UniformMatrix4(DemoShaders.spConstant.U("V"), 1, false, V.Values1D);
 
             mat4 M = mat4.Identity;
+            M *= mat4.Rotate(glm.Radians(60.0f * time), new vec3(0.0f, 1.0f, 0.0f)); //dodanie float time
             GL.UniformMatrix4(DemoShaders.spConstant.U("M"), 1, false, M.Values1D);
 
             // TU RYSUJEMY
+            teapot.drawWire();
 
             Glfw.SwapBuffers(window);
         }
@@ -72,7 +75,7 @@ namespace PMLabs
 
             while (!Glfw.WindowShouldClose(window))
             {
-                DrawScene(window);
+                DrawScene(window, (float)Glfw.Time); //dodanie float
                 Glfw.PollEvents();
             }
 
